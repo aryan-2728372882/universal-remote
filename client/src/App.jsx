@@ -70,11 +70,11 @@ export default function App() {
   const handleScanWifi = async () => {
     setDiscoveryData((prev) => ({ ...prev, isScanning: true }));
     try {
-      const res = await triggerNetworkScan();
+      await triggerNetworkScan();
       const updated = await fetchDiscoveredDevices();
       setDiscoveryData(updated);
     } catch (err) {
-      alert('Wi-Fi Scan failed: ' + err.message);
+      console.warn('Wi-Fi Scan notice:', err.message);
     } finally {
       setDiscoveryData((prev) => ({ ...prev, isScanning: false }));
     }
@@ -137,7 +137,7 @@ export default function App() {
 
       ws.onclose = () => {
         setIsConnected(false);
-        setTimeout(connectWs, 3000); // Reconnect
+        setTimeout(connectWs, 3000);
       };
 
       ws.onerror = () => {
@@ -147,7 +147,7 @@ export default function App() {
 
     connectWs();
 
-    // Refresh keep-alive status every 30 seconds
+    // Auto-refresh ping status every 30 seconds
     const pingInterval = setInterval(async () => {
       try {
         const pingRes = await fetchKeepAliveStatus();
@@ -163,7 +163,6 @@ export default function App() {
 
   // Handle command dispatch
   const handleCommand = async (deviceId, action, value = null, payload = null) => {
-    // Optimistic UI updates
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
         type: 'COMMAND',
@@ -173,7 +172,6 @@ export default function App() {
         payload
       }));
     } else {
-      // Fallback to REST API
       try {
         await sendCommand(deviceId, action, value, payload);
         loadData();
@@ -193,13 +191,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col items-center justify-start p-3 sm:p-6 pb-16 select-none font-sans">
-      {/* Top Bar with Keep-Alive Status */}
-      <header className="w-full max-w-md flex items-center justify-between py-2 mb-2">
+    <div className="min-h-[100dvh] w-full bg-[#070b14] text-slate-100 flex flex-col items-center justify-between p-2 sm:p-4 lg:p-6 select-none font-sans overflow-x-hidden">
+      
+      {/* Top Header Bar */}
+      <header className="w-full max-w-5xl flex items-center justify-between py-1.5 sm:py-2 mb-1">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-400/50" />
-          <h1 className="text-sm font-extrabold tracking-wide uppercase text-slate-200">
-            Universal Remote
+          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-md shadow-blue-400/50 animate-pulse" />
+          <h1 className="text-xs sm:text-sm font-extrabold tracking-wider uppercase text-slate-200">
+            Universal Smart Remote
           </h1>
         </div>
 
@@ -212,7 +211,7 @@ export default function App() {
         />
       </header>
 
-      {/* Discovered Wi-Fi Devices Banner */}
+      {/* Auto-Discovered Wi-Fi Devices Strip */}
       <WifiDiscoveryBanner
         discoveryData={discoveryData}
         onScan={handleScanWifi}
@@ -221,7 +220,7 @@ export default function App() {
         onAddManualDevice={handleAddManualDevice}
       />
 
-      {/* Device Switcher Navigation Bar */}
+      {/* Device Switcher Tab Bar */}
       <DeviceSwitcher
         currentDevice={activeDeviceId}
         onSelect={setActiveDeviceId}
@@ -229,8 +228,8 @@ export default function App() {
         onOpenQr={() => setIsQrOpen(true)}
       />
 
-      {/* Main Remote Body */}
-      <main className="w-full flex justify-center">
+      {/* Main Responsive Remote Canvas */}
+      <main className="w-full flex-1 flex items-center justify-center py-1 sm:py-2">
         {activeDeviceId === 'lg-ac' && (
           <LgAcRemote
             state={deviceStates.ac}
@@ -253,6 +252,15 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* Footer Info */}
+      <footer className="w-full max-w-5xl text-center py-2 text-[10px] sm:text-xs text-slate-500 flex items-center justify-center gap-2">
+        <span>Auto-responsive viewport</span>
+        <span>•</span>
+        <span>Zero-password Wi-Fi Control</span>
+        <span>•</span>
+        <span className="text-emerald-500 font-medium">Render 24/7 Keep-Alive Active</span>
+      </footer>
 
       {/* Modals */}
       <SettingsModal
