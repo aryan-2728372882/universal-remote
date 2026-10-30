@@ -14,38 +14,27 @@ setTimeout(() => {
 
 /**
  * GET /api/devices
- * Returns all configured devices and live status
+ * Returns strictly real discovered live devices
  */
 router.get('/devices', (req, res) => {
-  res.json({
-    devices: [
-      {
-        id: 'lg-ac',
-        name: 'LG Dual Inverter AC',
-        category: 'AC',
-        brand: 'LG',
-        protocol: 'LG ThinQ Cloud',
-        state: thinqService.getAcState(),
-        authenticated: thinqService.isAuthenticated
-      },
-      {
-        id: 'lg-tv',
-        name: 'LG webOS Smart TV',
-        category: 'TV',
-        brand: 'LG',
-        protocol: thinqService.isAuthenticated ? 'LG ThinQ Cloud' : 'Local webOS SSAP',
-        state: webosService.getState()
-      },
-      {
-        id: 'nokia-tv',
-        name: 'Nokia Smart Android TV',
-        category: 'TV',
-        brand: 'Nokia / Android TV',
-        protocol: 'Android TV Remote / Companion Bridge',
-        state: androidTvService.getState()
-      }
-    ]
+  const discovered = discoveryService.discoveredDevices || [];
+  
+  const mapped = discovered.map(dev => {
+    let state = null;
+    if (dev.category === 'AC' || dev.deviceType?.includes('AC')) {
+      state = thinqService.getAcState();
+    } else if (dev.deviceType === 'LG_WEBOS_TV' || dev.id.includes('lg')) {
+      state = webosService.getState();
+    } else {
+      state = androidTvService.getState();
+    }
+    return {
+      ...dev,
+      state
+    };
   });
+
+  res.json({ devices: mapped });
 });
 
 /**

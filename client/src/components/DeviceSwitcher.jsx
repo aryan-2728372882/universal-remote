@@ -2,18 +2,45 @@ import React from 'react';
 import { Wind, Tv, Settings, QrCode } from 'lucide-react';
 import { triggerHaptic } from '../utils/haptics';
 
-export default function DeviceSwitcher({ currentDevice, onSelect, onOpenSettings, onOpenQr }) {
-  const devices = [
-    { id: 'lg-ac', label: 'LG Inverter AC', short: 'LG AC', icon: Wind, badge: 'Wi-Fi' },
-    { id: 'lg-tv', label: 'LG webOS TV', short: 'LG TV', icon: Tv, badge: 'webOS' },
-    { id: 'nokia-tv', label: 'Nokia Smart TV', short: 'Nokia TV', icon: Tv, badge: 'Android TV' }
-  ];
+export default function DeviceSwitcher({
+  currentDevice,
+  onSelect,
+  onOpenSettings,
+  onOpenQr,
+  availableDevices = [],
+  isDemoMode = false
+}) {
+  // If in demo mode and no live devices, show demo list
+  const displayDevices = availableDevices.length > 0 
+    ? availableDevices.map((d) => {
+        const isAC = d.category === 'AC' || d.deviceType?.includes('AC');
+        let standardId = 'nokia-tv';
+        if (isAC) standardId = 'lg-ac';
+        else if (d.deviceType === 'LG_WEBOS_TV' || d.name?.toLowerCase().includes('lg')) standardId = 'lg-tv';
+
+        return {
+          id: standardId,
+          label: d.name,
+          short: d.name.replace(' (Wi-Fi)', '').replace(' Smart TV', ' TV').replace('Dual Inverter ', ''),
+          icon: isAC ? Wind : Tv,
+          badge: isAC ? 'ThinQ' : d.deviceType === 'LG_WEBOS_TV' ? 'webOS' : 'Android'
+        };
+      })
+    : isDemoMode
+    ? [
+        { id: 'lg-ac', label: 'LG Inverter AC', short: 'LG AC', icon: Wind, badge: 'DEMO' },
+        { id: 'lg-tv', label: 'LG webOS TV', short: 'LG TV', icon: Tv, badge: 'DEMO' },
+        { id: 'nokia-tv', label: 'Nokia Smart TV', short: 'Nokia TV', icon: Tv, badge: 'DEMO' }
+      ]
+    : [];
+
+  if (displayDevices.length === 0) return null;
 
   return (
     <div className="flex items-center justify-between w-full max-w-5xl mx-auto px-1 sm:px-2 py-1.5 mb-2 gap-2">
-      {/* Device Switcher Tabs */}
+      {/* Dynamic Device Switcher Tabs */}
       <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-inner flex-1 max-w-md sm:max-w-lg">
-        {devices.map((device) => {
+        {displayDevices.map((device) => {
           const Icon = device.icon;
           const isActive = currentDevice === device.id;
           return (

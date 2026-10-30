@@ -18,9 +18,11 @@ import {
   wakeLgTv
 } from './utils/api';
 import { triggerHaptic } from './utils/haptics';
+import { WifiOff, RefreshCw, Power, Sparkles, Tv, Wind } from 'lucide-react';
 
 export default function App() {
-  const [activeDeviceId, setActiveDeviceId] = useState('lg-ac'); // 'lg-ac', 'lg-tv', 'nokia-tv'
+  const [activeDeviceId, setActiveDeviceId] = useState(null); // null by default if no devices online
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const [deviceStates, setDeviceStates] = useState({
     ac: null,
     lgTv: null,
@@ -42,25 +44,27 @@ export default function App() {
   // Load initial data
   const loadData = async () => {
     try {
-      const devRes = await fetchDevices();
-      const acDev = devRes.devices.find((d) => d.id === 'lg-ac');
-      const lgTvDev = devRes.devices.find((d) => d.id === 'lg-tv');
-      const nokiaDev = devRes.devices.find((d) => d.id === 'nokia-tv');
+      const discRes = await fetchDiscoveredDevices();
+      setDiscoveryData(discRes);
 
-      setDeviceStates({
-        ac: acDev?.state,
-        lgTv: lgTvDev?.state,
-        nokiaTv: nokiaDev?.state
-      });
+      const liveList = discRes.devices || [];
+      if (liveList.length > 0 && !activeDeviceId) {
+        // Auto-select first real online device
+        const first = liveList[0];
+        if (first.category === 'AC' || first.deviceType?.includes('AC')) {
+          setActiveDeviceId('lg-ac');
+        } else if (first.deviceType === 'LG_WEBOS_TV' || first.name?.toLowerCase().includes('lg')) {
+          setActiveDeviceId('lg-tv');
+        } else {
+          setActiveDeviceId('nokia-tv');
+        }
+      }
 
       const pingRes = await fetchKeepAliveStatus();
       setKeepAliveStatus(pingRes);
 
       const netRes = await fetchNetworkInfo();
       setNetworkInfo(netRes);
-
-      const discRes = await fetchDiscoveredDevices();
-      setDiscoveryData(discRes);
     } catch (err) {
       console.warn('Initial load warning:', err.message);
     }
@@ -73,6 +77,20 @@ export default function App() {
       await triggerNetworkScan();
       const updated = await fetchDiscoveredDevices();
       setDiscoveryData(updated);
+
+      const liveList = updated.devices || [];
+      if (liveList.length > 0) {
+        const first = liveList[0];
+        if (first.category === 'AC' || first.deviceType?.includes('AC')) {
+          setActiveDeviceId('lg-ac');
+        } else if (first.deviceType === 'LG_WEBOS_TV' || first.name?.toLowerCase().includes('lg')) {
+          setActiveDeviceId('lg-tv');
+        } else {
+          setActiveDeviceId('nokia-tv');
+        }
+      } else if (!isDemoMode) {
+        setActiveDeviceId(null);
+      }
     } catch (err) {
       console.warn('Wi-Fi Scan notice:', err.message);
     } finally {
@@ -147,7 +165,6 @@ export default function App() {
 
     connectWs();
 
-    // Auto-refresh ping status every 30 seconds
     const pingInterval = setInterval(async () => {
       try {
         const pingRes = await fetchKeepAliveStatus();
@@ -174,7 +191,6 @@ export default function App() {
     } else {
       try {
         await sendCommand(deviceId, action, value, payload);
-        loadData();
       } catch (err) {
         console.error('Command dispatch error:', err);
       }
@@ -190,13 +206,16 @@ export default function App() {
     }
   };
 
+  const liveDevices = discoveryData.devices || [];
+  const hasActiveDevices = liveDevices.length > 0 || isDemoMode;
+
   return (
     <div className="min-h-[100dvh] w-full bg-[#070b14] text-slate-100 flex flex-col items-center justify-between p-2 sm:p-4 lg:p-6 select-none font-sans overflow-x-hidden">
       
       {/* Top Header Bar */}
       <header className="w-full max-w-5xl flex items-center justify-between py-1.5 sm:py-2 mb-1">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-md shadow-blue-400/50 animate-pulse" />
+          <span className={`w-2.5 h-2.5 rounded-full ${hasActiveDevices ? 'bg-blue-500 shadow-md shadow-blue-400/50 animate-pulse' : 'bg-slate-600'}`} />
           <h1 className="text-xs sm:text-sm font-extrabold tracking-wider uppercase text-slate-200">
             Universal Smart Remote
           </h1>
@@ -220,44 +239,102 @@ export default function App() {
         onAddManualDevice={handleAddManualDevice}
       />
 
-      {/* Device Switcher Tab Bar */}
+      {/* Device Switcher Tab Bar (ONLY shown when devices are detected or in demo mode) */}
       <DeviceSwitcher
         currentDevice={activeDeviceId}
         onSelect={setActiveDeviceId}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenQr={() => setIsQrOpen(true)}
+        availableDevices={liveDevices}
+        isDemoMode={isDemoMode}
       />
 
-      {/* Main Responsive Remote Canvas */}
-      <main className="w-full flex-1 flex items-center justify-center py-1 sm:py-2">
-        {activeDeviceId === 'lg-ac' && (
-          <LgAcRemote
-            state={deviceStates.ac}
-            onCommand={handleCommand}
-          />
+      {/* Main Canvas */}
+      <main className="w-full flex-1 flex items-center justify-center py-2 sm:py-4">
+        
+        {/* CASE 1: No devices detected online & not in demo mode */}
+        {!hasActiveDevices ? (
+          <div className="w-full max-w-md mx-auto p-6 sm:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl text-center flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-4 rounded-2xl bg-rose-950/60 text-rose-400 border border-rose-800/60 shadow-lg">
+              <WifiOff size={36} />
+            </div>
+
+            <div>
+              <h2 className="text-lg font-bold text-white">No Connected Devices Found</h2>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                All your devices (LG AC, LG TV, Nokia TV) are currently switched off from the wall socket.
+              </p>
+            </div>
+
+            <div className="w-full p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 text-left text-xs text-slate-300 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-blue-600/30 text-blue-400 flex items-center justify-center font-bold text-[11px]">1</span>
+                <span>Turn ON the power switch on your TV or AC</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-blue-600/30 text-blue-400 flex items-center justify-center font-bold text-[11px]">2</span>
+                <span>Wait ~10 seconds for it to reconnect to Wi-Fi</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-blue-600/30 text-blue-400 flex items-center justify-center font-bold text-[11px]">3</span>
+                <span>Click the button below to detect and control it</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleScanWifi}
+              disabled={discoveryData.isScanning}
+              className="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 font-bold text-sm text-white shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition-all active:scale-95"
+            >
+              <RefreshCw size={16} className={discoveryData.isScanning ? 'animate-spin' : ''} />
+              <span>{discoveryData.isScanning ? 'Scanning Home Wi-Fi...' : 'Scan Wi-Fi Now'}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                triggerHaptic('light');
+                setIsDemoMode(true);
+                setActiveDeviceId('lg-ac');
+              }}
+              className="text-xs text-slate-500 hover:text-slate-300 underline transition-all pt-1"
+            >
+              Preview Remote in Offline Test Mode
+            </button>
+          </div>
+        ) : (
+          /* CASE 2: Live device selected */
+          <>
+            {activeDeviceId === 'lg-ac' && (
+              <LgAcRemote
+                state={deviceStates.ac}
+                onCommand={handleCommand}
+              />
+            )}
+
+            {activeDeviceId === 'lg-tv' && (
+              <LgTvRemote
+                state={deviceStates.lgTv}
+                onCommand={handleCommand}
+                onWakeOnLan={handleWakeLgTv}
+              />
+            )}
+
+            {activeDeviceId === 'nokia-tv' && (
+              <NokiaTvRemote
+                state={deviceStates.nokiaTv}
+                onCommand={handleCommand}
+              />
+            )}
+          </>
         )}
 
-        {activeDeviceId === 'lg-tv' && (
-          <LgTvRemote
-            state={deviceStates.lgTv}
-            onCommand={handleCommand}
-            onWakeOnLan={handleWakeLgTv}
-          />
-        )}
-
-        {activeDeviceId === 'nokia-tv' && (
-          <NokiaTvRemote
-            state={deviceStates.nokiaTv}
-            onCommand={handleCommand}
-          />
-        )}
       </main>
 
       {/* Footer Info */}
       <footer className="w-full max-w-5xl text-center py-2 text-[10px] sm:text-xs text-slate-500 flex items-center justify-center gap-2">
-        <span>Auto-responsive viewport</span>
+        <span>Wi-Fi Live Device Detection</span>
         <span>•</span>
-        <span>Zero-password Wi-Fi Control</span>
+        <span>Zero-password Control</span>
         <span>•</span>
         <span className="text-emerald-500 font-medium">Render 24/7 Keep-Alive Active</span>
       </footer>

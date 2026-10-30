@@ -179,55 +179,8 @@ class DiscoveryService {
       if (onProgress) onProgress(Math.min(95, Math.round((completedIps / totalIps) * 100)));
     }
 
-    // Now check known profiles: If they were NOT found online during the scan,
-    // explicitly mark them as OFFLINE (Switched Off) so the user sees the real state!
-    const knownProfiles = [
-      {
-        id: 'lg-ac-thinq-01',
-        name: 'LG Dual Inverter AC',
-        brand: 'LG Electronics',
-        category: 'AC',
-        deviceType: 'LG_THINQ_AC',
-        protocol: 'Wi-Fi / ThinQ'
-      },
-      {
-        id: 'lg-tv-profile',
-        name: 'LG webOS TV',
-        brand: 'LG Electronics',
-        category: 'TV',
-        deviceType: 'LG_WEBOS_TV',
-        protocol: 'webOS LAN'
-      },
-      {
-        id: 'nokia-tv-profile',
-        name: 'Nokia Smart Android TV',
-        brand: 'Nokia',
-        category: 'TV',
-        deviceType: 'ANDROID_TV',
-        protocol: 'Android TV'
-      }
-    ];
-
-    const finalDevices = [...liveDevices];
-
-    for (const profile of knownProfiles) {
-      const isAlreadyFoundLive = liveDevices.some(
-        (d) => d.deviceType === profile.deviceType || d.name.toLowerCase().includes(profile.name.toLowerCase().split(' ')[0])
-      );
-
-      if (!isAlreadyFoundLive) {
-        // Device is switched off from the wall switch!
-        finalDevices.push({
-          ...profile,
-          status: 'OFFLINE',
-          isLive: false,
-          ip: 'Not Responding (Switched Off)',
-          discoveredAt: new Date().toISOString()
-        });
-      }
-    }
-
-    this.discoveredDevices = finalDevices;
+    // Strictly return only real devices that actually responded on the network
+    this.discoveredDevices = liveDevices;
     this.isScanning = false;
     this.lastScanTime = new Date().toISOString();
 
