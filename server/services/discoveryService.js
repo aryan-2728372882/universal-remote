@@ -2,6 +2,8 @@ const os = require('os');
 const net = require('net');
 const dgram = require('dgram');
 const { exec } = require('child_process');
+const webosService = require('./webosService');
+const androidTvService = require('./androidTvService');
 
 class DiscoveryService {
   constructor() {
@@ -144,6 +146,7 @@ class DiscoveryService {
               name = 'LG webOS Smart TV';
               brand = 'LG';
               category = 'TV';
+              webosService.setTvIp(ip, mac);
             }
 
             if (openPorts.includes(8008) || openPorts.includes(8009) || openPorts.includes(6466) || openPorts.includes(5555)) {
@@ -151,6 +154,7 @@ class DiscoveryService {
               name = 'Nokia Smart Android TV';
               brand = 'Nokia';
               category = 'TV';
+              androidTvService.setTvIp(ip);
 
               if (openPorts.includes(8008)) {
                 const castInfo = await this.fetchCastInfo(ip);
