@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #0b0f19;
+    color: #f1f5f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    overflow-x: hidden;
+  }
+}
+
+/* Custom Remote Styling */
+.remote-surface {
+  background: linear-gradient(180deg, #182234 0%, #0d1524 100%);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.remote-btn {
+  background: linear-gradient(180deg, #243046 0%, #172235 100%);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.remote-btn:active {
+  transform: scale(0.94);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.6), inset 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, #151d2c 0%, #1d273a 100%);
+}
+
+.remote-btn-primary {
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+}
+
+.remote-btn-primary:active {
+  transform: scale(0.94);
+  background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%);
+}
+
+.remote-btn-danger {
+  background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
+  box-shadow: 0 4px 12px -2px rgba(239, 68, 68, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+}
+
+.remote-btn-danger:active {
+  transform: scale(0.94);
+  background: linear-gradient(180deg, #b91c1c 0%, #991b1b 100%);
+}
+
+.dpad-center {
+  background: radial-gradient(circle at 35% 35%, #2a374f 0%, #141c2c 100%);
+  box-shadow: inset 0 2px 4px 0 rgba(255, 255, 255, 0.15), 0 8px 16px -4px rgba(0, 0, 0, 0.6);
+}
+
+.dpad-center:active {
+  transform: scale(0.95);
+  box-shadow: inset 0 3px 6px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* Glassmorphism overlays */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Hide scrollbars but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

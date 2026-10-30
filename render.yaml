@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: universal-remote
+    env: node
+    plan: free
+    region: oregon # or frankfurt, singapore
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000

@@ -1,0 +1,21 @@
+{
+  "tvState": {
+    "id": "nokia-android-tv-01",
+    "name": "Nokia Smart Android TV",
+    "type": "ANDROID_TV",
+    "ip": "192.168.1.55",
+    "paired": true,
+    "power": true,
+    "volume": 24,
+    "isMuted": false,
+    "currentApp": "YouTube",
+    "connectionMode": "CLOUD_BRIDGE",
+    "lastCommand": {
+      "command": "LAUNCH_APP",
+      "payload": {
+        "app": "YouTube"
+      },
+      "timestamp": "2026-10-30T03:27:19.178Z"
+    }
+  }
+}

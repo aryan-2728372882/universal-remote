@@ -1,0 +1,36 @@
+{
+  "credentials": {
+    "username": "",
+    "country": "IN",
+    "language": "en-US",
+    "token": null
+  },
+  "acState": {
+    "id": "lg-ac-thinq-01",
+    "name": "LG Dual Inverter AC",
+    "type": "AIR_CONDITIONER",
+    "power": true,
+    "currentTemp": 24,
+    "targetTemp": 20,
+    "mode": "COOL",
+    "fanSpeed": "AUTO",
+    "vSwing": false,
+    "hSwing": false,
+    "jetCool": false,
+    "energySaver": true,
+    "humidity": 52,
+    "isSimulated": true
+  },
+  "tvState": {
+    "id": "lg-tv-thinq-01",
+    "name": "LG webOS Smart TV",
+    "type": "TV",
+    "power": true,
+    "volume": 18,
+    "isMuted": false,
+    "currentInput": "HDMI 1",
+    "currentChannel": 104,
+    "currentApp": "Netflix",
+    "isSimulated": true
+  }
+}
