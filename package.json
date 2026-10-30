@@ -1,19 +1,28 @@
 {
   "name": "universal-remote",
-  "version": "1.0.0",
-  "description": "Universal Smart Home Remote Web App for LG AC, LG webOS TV, Nokia Android TV with Render 24/7 Keep-Alive",
+  "version": "2.0.0",
+  "description": "Local-first Universal Smart Home Remote Hub for LG webOS TV, Nokia Android TV, and LG ThinQ AC",
   "main": "server/index.js",
   "scripts": {
     "postinstall": "cd client && npm install",
     "build": "cd client && npm run build",
     "start": "node server/index.js",
     "server": "node server/index.js",
-    "client": "cd client && npm run dev"
+    "client": "cd client && npm run dev",
+    "test": "node --test server/tests/*.test.js"
   },
   "dependencies": {
+    "androidtv-remote": "^1.0.10",
+    "bcryptjs": "^3.0.3",
+    "bonjour-service": "^1.4.4",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.7.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "node-ssdp": "^4.0.1",
     "qrcode": "^1.5.4",
     "ws": "^8.18.0"
   },
@@ -22,11 +31,12 @@
   },
   "keywords": [
     "universal-remote",
-    "lg-thinq",
+    "local-first",
+    "smart-home",
     "webos",
     "android-tv",
-    "nokia-tv",
-    "render-pwa"
+    "lg-thinq",
+    "hub"
   ],
   "author": "",
   "license": "MIT"

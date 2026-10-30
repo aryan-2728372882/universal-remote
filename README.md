@@ -1,116 +1,184 @@
-# 📱 Universal Remote Web App (PWA)
+# 📱 Universal Remote Hub (Local-First PWA)
 
-A full-featured, zero-cost **Universal Smart Home Remote** designed for your:
-1. ❄️ **LG Dual Inverter Air Conditioner** (LG ThinQ Wi-Fi)
-2. 📺 **LG webOS Smart TV** (webOS & LG ThinQ)
-3. 📺 **Nokia Smart TV** (Android TV / Google TV)
+A genuine **local-first smart home hub** and Progressive Web App (PWA) designed to run inside your home network (on a laptop, Raspberry Pi, home server, or old Android phone via Termux).
 
-Runs seamlessly on **Render.com Free Web Service** with an automated **24/7 Keep-Alive Self-Ping Engine**, meaning:
-- **No laptop needed** to stay on 24/7.
-- **100% Free of Cost** (Zero server bills, zero subscriptions).
-- Responsive **Mobile-First PWA**: Install on your phone via *"Add to Home Screen"* with realistic tactile haptic button clicks!
+Any phone, tablet, or laptop on the same Wi-Fi opens `http://<hub-ip>:3000` to control your devices instantly with **sub-millisecond local latency**.
 
----
-
-## 🚀 Features
-
-### ❄️ LG Air Conditioner Remote
-- **Power On / Off** with live status indicator.
-- **Circular Thermostat Dial**: Precise target temperature steppers (`16°C` to `30°C`) & touch slider.
-- **Room Sensor Readout**: Live indoor room temperature & humidity readout.
-- **Modes**: Cool (❄️), Dry (💧), Fan (🌀), Heat (☀️), Auto (🔄).
-- **Fan Speeds**: Low, Medium, High, Auto, Turbo.
-- **Air Swings**: Independent toggles for Vertical Swing & Horizontal Oscillation.
-- **Special Modes**: **Jet Cool (18°C Turbo)** and **Energy Saver**.
-
-### 📺 LG webOS Smart TV Remote
-- **Power**: Turn Off and **Wake-on-LAN (WoL)** to power on sleeping TVs.
-- **Volume & Channel Rockers**: Dedicated step controls with instant mute toggle.
-- **Magic Remote Directional Pad**: Up, Down, Left, Right, and Center Click OK button.
-- **Navigation Triad**: Back, Home Dashboard, and Settings Menu.
-- **Quick App Launchers**: Netflix, YouTube, Prime Video, Disney+, HDMI 1, HDMI 2, Live TV.
-- **Media Controls**: Play, Pause, Rewind, Fast Forward.
-- **Interactive Numpad**: Toggleable 0-9 drawer for direct channel typing.
-
-### 📺 Nokia Smart Android TV Remote
-- **Android TV Remote Interface**: Full Google TV / Android TV remote layout.
-- **Google Assistant Voice Button**: Dedicated trigger.
-- **TV Keyboard Input**: Type text or search queries directly from your phone into the TV.
-- **Media & App Launchers**: One-tap launch for YouTube, Netflix, Prime Video, and Hotstar.
-- **Cloud Companion Bridge**: Connects to Render's WebSocket relay so commands reach your Nokia TV from the cloud.
-
-### ⚡ 24/7 Render Keep-Alive Engine
-- Render's free tier spins down services after 15 minutes of idle time.
-- Our built-in **Ping Engine** automatically pings your Render URL every **11 minutes** to keep your remote active 24 hours a day, 7 days a week, completely free!
-- Built-in status badge in the header displays live ping counts and health.
+- **Zero Cloud Dependence**: Works even if your internet connection is down for all local-protocol devices (LG webOS TV, Nokia Android TV, Samsung Tizen, Roku, etc.).
+- **Hardware-Enforced Security**: PIN authentication, encrypted persistent storage (AES-256-GCM), rate-limiting, and Helmet security headers.
+- **Genuine Protocols**:
+  - **LG webOS TV**: WebSocket SSAP, direct pointer socket binary buttons (`UP`, `DOWN`, `LEFT`, `RIGHT`, `ENTER`, `BACK`, `HOME`), state subscriptions, directed Subnet Broadcast Wake-on-LAN.
+  - **Nokia Smart TV (Android TV / Google TV)**: Android TV Remote Protocol v2 over TLS (ports 6466/6467) with on-screen PIN pairing, persisted TLS certificates, and deep-link app launchers.
+  - **LG Dual Inverter AC**: Official LG ThinQ Connect REST API with encrypted Personal Access Token (PAT). Transparently flags that AC requires internet because LG ACs communicate via the LG Cloud.
 
 ---
 
-## 🛠️ Instant Deployment to Render (3 Minutes, 100% Free)
+## 🚀 Quick Start Deployment
 
-1. **Push this folder to your GitHub**:
-   ```bash
-   cd universal-remote
-   git init
-   git add .
-   git commit -m "Initial commit of Universal Remote"
-   git branch -M main
-   git remote add origin https://github.com/<your-username>/universal-remote.git
-   git push -u origin main
-   ```
+### 1. Requirements
+- Node.js `v18.0.0` or higher (`v20+` recommended).
+- All devices must be connected to the same Wi-Fi router.
 
-2. **Deploy on Render**:
-   - Go to [Render.com](https://render.com) and sign in for free.
-   - Click **New +** -> **Web Service**.
-   - Select your GitHub repository.
-   - Settings:
-     - **Name**: `my-universal-remote` (or any name you like)
-     - **Language**: `Node`
-     - **Build Command**: `npm install && npm run build`
-     - **Start Command**: `npm start`
-     - **Instance Type**: `Free`
-   - Click **Deploy Web Service**!
-
-3. **Activate 24/7 Keep-Alive**:
-   - Once deployed, copy your Render URL (e.g. `https://my-universal-remote.onrender.com`).
-   - Open your remote website, click **⚙️ Settings**, paste your Render URL, and click **Save**.
-   - Your remote will now self-ping every 11 minutes and stay awake 24/7!
-
----
-
-## 📲 How to Use on Your Phone (Install as PWA)
-
-1. Open your Render link (or scan the QR code from the app) on your iPhone (Safari) or Android phone (Chrome).
-2. Tap the browser share/menu icon:
-   - **iPhone (Safari)**: Tap **Share** -> **Add to Home Screen**.
-   - **Android (Chrome)**: Tap the **three dots** -> **Add to Home Screen** / **Install App**.
-3. It will install as an app with an icon, full-screen UI, and zero browser address bars!
-
----
-
-## 🔌 Device Connection Guide
-
-### 1. LG Air Conditioner & LG TV (via LG ThinQ Cloud)
-- Make sure your LG AC is registered in the official **LG ThinQ mobile app**.
-- If you have an LG webOS TV, sign in to your LG ThinQ account in the TV Settings as well.
-- In your Universal Remote app, tap **⚙️ Settings** -> **LG ThinQ** tab.
-- Enter your LG account email and password.
-- Both your AC and TV will now be controllable from anywhere in the world!
-
-### 2. Nokia Smart TV (Android TV)
-- Open the built-in browser on your Nokia TV.
-- Visit: `https://<your-render-url>/tv-receiver.html`.
-- It will automatically connect to your Render cloud WebSocket and execute remote clicks in real-time!
-
----
-
-## 💻 Local Testing (Running on your laptop)
-
-If you ever want to run it on your laptop:
+### 2. Installation
 ```bash
-# In the universal-remote directory
+git clone https://github.com/aryan-2728372882/universal-remote.git
+cd universal-remote
+
+# Install dependencies for both server and client
 npm install
+
+# Build client production bundle
 npm run build
+
+# Start the hub
 npm start
 ```
-Then visit `http://localhost:3000` in your browser.
+
+### 3. Finding Your Hub IP
+When the hub starts, it automatically detects your private Wi-Fi interface and logs the exact URL:
+```
+================================================================
+🚀 UNIVERSAL REMOTE LOCAL-FIRST HUB RUNNING
+   Local URL:    http://localhost:3000
+   Wi-Fi URL:    http://192.168.1.34:3000
+   PIN Security: FIRST-RUN SETUP REQUIRED
+================================================================
+```
+
+You can also find your IP manually:
+- **Windows**: Run `ipconfig` in PowerShell/CMD (look for *IPv4 Address* under your Wi-Fi adapter, e.g., `192.168.1.x`).
+- **Linux / Raspberry Pi**: Run `hostname -I` or `ip addr show`.
+- **macOS**: Run `ipconfig getifaddr en0`.
+- **Android (Termux)**: Run `ifconfig wlan0` or check Android Wi-Fi Details in Settings.
+
+---
+
+## 🔄 Auto-Start on Boot
+
+To keep the hub running 24/7 inside your home without keeping a terminal open:
+
+### Option A: PM2 (Recommended for Windows, macOS, Linux, Raspberry Pi)
+```bash
+# Install PM2 process manager globally
+npm install -g pm2
+
+# From the universal-remote directory:
+pm2 start server/index.js --name "universal-remote"
+
+# Save configuration and register system boot startup
+pm2 save
+pm2 startup
+```
+
+### Option B: systemd Service (Linux & Raspberry Pi)
+1. Create a service file:
+   ```bash
+   sudo nano /etc/systemd/system/universal-remote.service
+   ```
+2. Paste the following configuration (replace `pi` with your user and `/home/pi/universal-remote` with your path):
+   ```ini
+   [Unit]
+   Description=Universal Remote Local Hub
+   After=network.target
+
+   [Service]
+   Type=simple
+   User=pi
+   WorkingDirectory=/home/pi/universal-remote
+   ExecStart=/usr/bin/node server/index.js
+   Restart=always
+   RestartSec=5
+   Environment=NODE_ENV=production
+   Environment=PORT=3000
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+3. Enable and start:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now universal-remote
+   sudo systemctl status universal-remote
+   ```
+
+### Option C: Android Phone via Termux
+You can repurpose an old Android phone into a silent 24/7 hub:
+1. Install **Termux** from F-Droid.
+2. In Termux, run:
+   ```bash
+   pkg update && pkg install nodejs git
+   git clone https://github.com/aryan-2728372882/universal-remote.git
+   cd universal-remote
+   npm install && npm run build
+   node server/index.js
+   ```
+3. Acquire a Wake Lock in Termux (`termux-wake-lock`) so Android does not sleep the CPU.
+
+---
+
+## 🔒 Security & First-Run Setup
+
+1. Open `http://<hub-ip>:3000` on any device on your Wi-Fi.
+2. On first visit, the UI presents the **Setup Hub Security PIN** prompt. Enter a 4-8 digit numeric PIN.
+3. The PIN is hashed using `bcrypt` and stored in `server/data/store.json`. A cryptographically signed session JWT cookie (`hub_session`) is created.
+4. Any phone opening the URL subsequently will be prompted to enter the PIN before control is granted.
+5. All secrets (LG webOS client keys, Android TV TLS certs, LG ThinQ PAT tokens) are encrypted on disk with AES-256-GCM using an auto-generated per-install machine key (`master.key`).
+
+---
+
+## 📺 Device Pairing Guide
+
+### 1. LG webOS Smart TV
+1. Turn on the LG TV and ensure it is connected to the same Wi-Fi.
+2. In the Universal Remote banner, click **Scan Wi-Fi** or click **Settings** -> **Add by IP** (`192.168.1.x`).
+3. If not already paired, the TV status will display `PAIRING_REQUIRED`. Click **Pair Device**.
+4. The TV screen will display an on-screen dialog: *"Universal Remote Hub requests connection"*.
+5. Select **Accept / Yes** using your physical TV remote.
+6. The TV and Hub exchange client-keys. The key is securely saved, and full D-pad, app launcher, volume, and WoL controls become active.
+
+### 2. Nokia Smart TV (Android TV / Google TV)
+1. Turn on the Nokia TV.
+2. Register the device via auto-discovery or by entering its IP in Settings.
+3. When the status displays `PAIRING_REQUIRED`, click **Pair Device**.
+4. The hub initiates Android TV Remote v2 TLS pairing on port 6467.
+5. A **6-character alphanumeric pairing code** appears on your TV screen.
+6. Type the code into the Universal Remote pairing wizard modal and click **Confirm**.
+7. The hub stores the client certificate and connects to remote port 6466 for responsive D-pad, media, and text input.
+
+### 3. LG Dual Inverter Air Conditioner (ThinQ Wi-Fi)
+1. Register your LG AC in the official **LG ThinQ mobile app** on your phone.
+2. Go to the official [LG ThinQ Connect Developer Portal](https://smartsolution.developer.lge.com).
+3. Log in with your LG account, create a Personal Access Token (PAT), and select the region (`IN` for India, `US`, etc.).
+4. In Universal Remote, click **Settings** -> **LG ThinQ AC**. Paste your PAT token and select your region.
+5. Real AC telemetry (power, room temp, humidity, target temp, fan speed, swing) will synchronize.
+> **Note**: LG ACs do not have a local LAN control API; they communicate through LG Cloud servers. The AC therefore requires internet access.
+
+---
+
+## 🌐 Troubleshooting Network & AP Isolation
+
+| Issue | Cause | Fix |
+|---|---|---|
+| Auto-discovery doesn't find TV | Router **AP Isolation** or **VLAN / Guest Mode** separates Wi-Fi clients from talking to each other. | 1. Disable "AP Isolation" or "Client Isolation" in your Wi-Fi router settings.<br>2. Add the device manually in Universal Remote under **Settings -> Add by IP**. |
+| TV not found on 5GHz vs 2.4GHz | Some home routers do not bridge multicast across 2.4GHz and 5GHz bands. | Ensure hub and TVs are on the same Wi-Fi band or enable multicast forwarding / IGMP Snooping in router settings. |
+| Wake-on-LAN doesn't turn TV ON | Router drops general `255.255.255.255` UDP broadcasts. | Universal Remote automatically calculates and sends WoL packets to your specific subnet broadcast (e.g., `192.168.1.255`). Ensure "Wake On Wi-Fi / Mobile TV On" is enabled in your LG TV Settings. |
+
+---
+
+## 🧪 Testing & Verification
+
+Run the automated test suite:
+```bash
+npm test
+```
+
+To run offline mock simulation mode without hardware:
+```bash
+ENABLE_MOCK=1 npm start
+```
+This registers a mock multi-device driver clearly tagged `[MOCK TEST MODE]` in the UI to test all UI controls, sliders, D-pad, scenes, and schedules.
+
+---
+
+## 📄 License
+MIT. Made for genuine, local-first smart home freedom.

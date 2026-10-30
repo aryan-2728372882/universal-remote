@@ -1,190 +1,215 @@
 const express = require('express');
 const router = express.Router();
 const qrcode = require('qrcode');
-const pingService = require('../services/pingService');
-const thinqService = require('../services/thinqService');
-const androidTvService = require('../services/androidTvService');
-const webosService = require('../services/webosService');
-const discoveryService = require('../services/discoveryService');
+const auth = require('../core/Auth');
+const store = require('../core/Store');
+const deviceRegistry = require('../core/DeviceRegistry');
+const sceneManager = require('../core/SceneManager');
+const subnetScan = require('../discovery/subnetScan');
+const mdnsDiscovery = require('../discovery/mdns');
+const ssdpDiscovery = require('../discovery/ssdp');
 
-// Initial background scan on server start
-setTimeout(() => {
-  discoveryService.scanNetwork().catch(() => {});
-}, 2000);
+// In-memory discovered cache
+let discoveredCache = [];
 
-/**
- * GET /api/devices
- * Returns strictly real discovered live devices
- */
-router.get('/devices', (req, res) => {
-  const discovered = discoveryService.discoveredDevices || [];
-  
-  const mapped = discovered.map(dev => {
-    let state = null;
-    if (dev.category === 'AC' || dev.deviceType?.includes('AC')) {
-      state = thinqService.getAcState();
-    } else if (dev.deviceType === 'LG_WEBOS_TV' || dev.id.includes('lg')) {
-      state = webosService.getState();
-    } else {
-      state = androidTvService.getState();
-    }
-    return {
-      ...dev,
-      state
-    };
-  });
-
-  res.json({ devices: mapped });
-});
-
-/**
- * Wi-Fi Discovery Routes
- */
-router.get('/discovery', (req, res) => {
-  res.json(discoveryService.getDiscoveredDevices());
-});
-
-router.post('/discovery/scan', async (req, res) => {
-  try {
-    const result = await discoveryService.scanNetwork();
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+// Initialize continuous discovery listeners
+mdnsDiscovery.start((device) => {
+  if (!discoveredCache.some(d => d.ip === device.ip)) {
+    discoveredCache.push(device);
   }
 });
 
-router.post('/discovery/add', (req, res) => {
+ssdpDiscovery.start((device) => {
+  if (!discoveredCache.some(d => d.ip === device.ip)) {
+    discoveredCache.push(device);
+  }
+});
+
+/**
+ * Authentication Endpoints
+ */
+router.get('/auth/status', (req, res) => {
+  const token = req.cookies?.hub_session || req.headers.authorization?.replace(/^Bearer\s+/, '');
+  res.json({
+    isConfigured: auth.isConfigured(),
+    authenticated: auth.verifyToken(token)
+  });
+});
+
+router.post('/auth/setup', async (req, res) => {
+  if (auth.isConfigured()) {
+    return res.status(400).json({ error: 'PIN already configured' });
+  }
+
   try {
-    const { ip, name, category, type } = req.body;
-    const device = discoveryService.addCustomDevice({ ip, name, category, type });
-    res.json({ success: true, device });
+    const { pin } = req.body;
+    const token = await auth.setPin(pin);
+    res.cookie('hub_session', token, { httpOnly: true, sameSite: 'strict', maxAge: 30 * 86400000 });
+    res.json({ ok: true, token });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-/**
- * POST /api/commands
- * Sends a command to a specific device
- */
-router.post('/commands', async (req, res) => {
-  const { deviceId, action, value, payload } = req.body;
-
-  if (!deviceId || !action) {
-    return res.status(400).json({ error: 'deviceId and action are required' });
-  }
-
+router.post('/auth/login', async (req, res) => {
   try {
-    let result;
-    if (deviceId.startsWith('lg-ac')) {
-      result = await thinqService.controlAc(action, value);
-    } else if (deviceId.startsWith('lg-tv')) {
-      result = await webosService.sendCommand(action, { value, ...(payload || {}) });
-    } else if (deviceId.startsWith('nokia-tv')) {
-      result = await androidTvService.sendCommand(action, payload || { value });
-    } else {
-      // Default to android TV or webos based on action
-      result = await androidTvService.sendCommand(action, payload || { value });
+    const { pin } = req.body;
+    const token = await auth.verifyPin(pin);
+    if (!token) {
+      return res.status(401).json({ error: 'INVALID_PIN', message: 'Incorrect PIN' });
     }
+    res.cookie('hub_session', token, { httpOnly: true, sameSite: 'strict', maxAge: 30 * 86400000 });
+    res.json({ ok: true, token });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
-    res.json({ success: true, result });
+router.post('/auth/logout', (req, res) => {
+  res.clearCookie('hub_session');
+  res.json({ ok: true });
+});
+
+/**
+ * Device Management & Control (Protected)
+ */
+router.get('/devices', (req, res) => {
+  res.json({ devices: deviceRegistry.getAllDevices() });
+});
+
+router.post('/devices', (req, res) => {
+  try {
+    const dev = deviceRegistry.addOrUpdateDevice(req.body);
+    res.json({ ok: true, device: dev });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.delete('/devices/:id', (req, res) => {
+  const ok = deviceRegistry.removeDevice(req.params.id);
+  res.json({ ok });
+});
+
+router.post('/devices/:id/execute', async (req, res) => {
+  const { capabilityId, value } = req.body;
+  if (!capabilityId) {
+    return res.status(400).json({ error: 'capabilityId is required' });
+  }
+  const result = await deviceRegistry.executeCommand(req.params.id, capabilityId, value);
+  res.json(result);
+});
+
+router.post('/devices/:id/pair', async (req, res) => {
+  const { input } = req.body;
+  const result = await deviceRegistry.pairDevice(req.params.id, input);
+  res.json(result);
+});
+
+/**
+ * Discovery Endpoints
+ */
+router.get('/discovery', (req, res) => {
+  const nets = subnetScan.getPrivateInterfaces();
+  res.json({
+    discovered: discoveredCache,
+    interfaces: nets,
+    primarySubnet: nets[0] || null
+  });
+});
+
+router.post('/discovery/scan', async (req, res) => {
+  try {
+    const fallbackResults = await subnetScan.scan();
+    for (const r of fallbackResults) {
+      if (!discoveredCache.some(d => d.ip === r.ip)) {
+        discoveredCache.push(r);
+      }
+    }
+    res.json({ ok: true, discovered: discoveredCache });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 /**
- * Render Keep-Alive Endpoints
+ * Scenes & Schedules
  */
-router.get('/ping', (req, res) => {
+router.get('/scenes', (req, res) => {
+  res.json({ scenes: sceneManager.getScenes() });
+});
+
+router.post('/scenes', (req, res) => {
+  res.json({ scenes: sceneManager.saveScene(req.body) });
+});
+
+router.delete('/scenes/:id', (req, res) => {
+  res.json({ scenes: sceneManager.deleteScene(req.params.id) });
+});
+
+router.post('/scenes/:id/trigger', async (req, res) => {
+  try {
+    const result = await sceneManager.triggerScene(req.params.id);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.get('/schedules', (req, res) => {
+  res.json({ schedules: sceneManager.getSchedules() });
+});
+
+router.post('/schedules', (req, res) => {
+  res.json({ schedules: sceneManager.saveSchedule(req.body) });
+});
+
+router.delete('/schedules/:id', (req, res) => {
+  res.json({ schedules: sceneManager.deleteSchedule(req.params.id) });
+});
+
+/**
+ * Hub Info & Settings
+ */
+router.get('/hub/info', async (req, res) => {
+  const nets = subnetScan.getPrivateInterfaces();
+  const hostIp = nets[0]?.ip || '127.0.0.1';
+  const port = process.env.PORT || 3000;
+  const hubUrl = `http://${hostIp}:${port}`;
+
+  let qrCode = null;
+  try {
+    qrCode = await qrcode.toDataURL(hubUrl, { margin: 2, width: 220 });
+  } catch {}
+
   res.json({
-    status: 'ACTIVE',
-    service: 'Universal Remote Web Service',
-    uptimeSeconds: Math.floor(process.uptime()),
-    timestamp: new Date().toISOString()
+    hubUrl,
+    hostIp,
+    port,
+    qrCode,
+    platform: process.platform,
+    nodeVersion: process.version,
+    uptime: Math.floor(process.uptime()),
+    hasThinqPat: Boolean(store.getEncrypted('thinq_pat_token'))
   });
 });
 
-router.get('/ping/status', (req, res) => {
-  res.json(pingService.getStatus());
-});
-
-router.post('/ping/configure', (req, res) => {
-  const { url } = req.body;
-  if (!url) return res.status(400).json({ error: 'URL required' });
-  pingService.setTargetUrl(url);
-  res.json({ success: true, status: pingService.getStatus() });
-});
-
-/**
- * LG ThinQ Authentication
- */
-router.get('/auth/thinq', (req, res) => {
-  res.json(thinqService.getStatus());
-});
-
-router.post('/auth/thinq', async (req, res) => {
-  const { username, password, country } = req.body;
-  const result = await thinqService.setCredentials({ username, password, country });
-  res.json(result);
-});
-
-router.post('/auth/thinq/disconnect', (req, res) => {
-  const result = thinqService.disconnect();
-  res.json(result);
-});
-
-/**
- * TV Specific routes
- */
-router.post('/devices/lg-tv/wol', async (req, res) => {
-  const result = await webosService.wakeOnLan();
-  res.json(result);
-});
-
-router.post('/devices/update', (req, res) => {
-  const { deviceId, updates } = req.body;
-  if (deviceId.startsWith('lg-tv')) {
-    res.json(webosService.updateConfig(updates));
-  } else if (deviceId.startsWith('nokia-tv')) {
-    res.json(androidTvService.updateConfig(updates));
+router.post('/hub/thinq', (req, res) => {
+  const { patToken, country = 'IN' } = req.body;
+  if (patToken) {
+    store.setEncrypted('thinq_pat_token', patToken.trim());
+    store.set('thinq_country', country);
   } else {
-    res.status(400).json({ error: 'Unsupported device for direct update' });
-  }
-});
-
-/**
- * QR Code & Network Info for Mobile
- */
-router.get('/network-info', async (req, res) => {
-  const host = req.get('host') || 'localhost:3000';
-  const protocol = req.protocol;
-  const { localIp } = discoveryService.getLocalNetworkInfo();
-
-  // If accessed from localhost or 127.0.0.1, use the real Wi-Fi IP for phone QR scanning
-  let mobileUrl = `${protocol}://${host}`;
-  if (host.includes('localhost') || host.includes('127.0.0.1')) {
-    const port = host.split(':')[1] || '3000';
-    mobileUrl = `http://${localIp}:${port}`;
+    store.delete('thinq_pat_token');
   }
 
-  try {
-    const qrDataUrl = await qrcode.toDataURL(mobileUrl, {
-      margin: 2,
-      width: 250,
-      color: { dark: '#000000', light: '#ffffff' }
-    });
-
-    res.json({
-      url: mobileUrl,
-      localIp,
-      host,
-      isRender: !!process.env.RENDER,
-      qrCode: qrDataUrl
-    });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to generate QR' });
+  // Update any existing thinq driver instances
+  const thinqInstance = deviceRegistry.getDevice('lg-ac-thinq');
+  if (thinqInstance && thinqInstance.setToken) {
+    thinqInstance.setToken(patToken, country);
   }
+
+  res.json({ ok: true, hasToken: Boolean(patToken) });
 });
 
 module.exports = router;
