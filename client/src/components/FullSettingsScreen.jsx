@@ -137,7 +137,7 @@ export default function FullSettingsScreen({
           </div>
         </div>
         <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-700/50">
-          v2.4.0
+          v1.0.0
         </span>
       </div>
 

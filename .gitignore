@@ -5,6 +5,8 @@ client/node_modules/
 .DS_Store
 dist/
 client/dist/
+.netlify/
+client/.netlify/
 server/data/
 data/
 *.key

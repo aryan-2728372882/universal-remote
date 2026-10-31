@@ -1,6 +1,6 @@
 {
   "name": "universal-remote",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "Local-first Universal Smart Home Remote Hub for LG webOS TV, Nokia Android TV, and LG ThinQ AC",
   "main": "server/index.js",
   "scripts": {

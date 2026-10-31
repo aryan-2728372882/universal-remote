@@ -168,7 +168,7 @@ export default function PublicWebsite({
           <AppLogo size={36} />
           <div>
             <span className="font-black text-sm sm:text-base tracking-wider uppercase text-white font-mono flex items-center gap-2">
-              Universal Remote <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">v2.4.0</span>
+              Universal Remote <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">v1.0.0</span>
             </span>
             <p className="text-[10px] text-slate-400 hidden sm:block">Local-First Smart TV Controller</p>
           </div>
@@ -702,7 +702,7 @@ export default function PublicWebsite({
 
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold tracking-wider uppercase mb-5">
               <Download size={14} className="text-cyan-400" />
-              <span>Verified Production Release v2.4.0</span>
+              <span>Verified Production Release v1.0.0</span>
             </div>
 
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight">
