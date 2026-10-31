@@ -61,7 +61,7 @@ Below is the file-by-file audit of what is real, what is fake, and what must be 
    - Implement `Auth.js`: First-run PIN configuration (bcrypt), JWT/cookie session tokens for REST & WebSocket, helmet, rate-limiting.
    - Implement `DeviceDriver.js`: Strict abstract base class for all hardware drivers.
    - Implement `DeviceRegistry.js` & `EventBus.js`: Registry managing driver lifecycles, health polling, and event broadcasting.
-   - Implement `drivers/mock.js`: Explicit mock driver for testing without physical hardware, guarded behind `ENABLE_MOCK=1`.
+   - Implement real brand drivers for LG webOS, Android TV, LG ThinQ AC, Samsung Tizen, and Roku with dynamic capabilities.
 
 2. **Phase 2: Local Network Discovery**
    - Implement `discovery/ssdp.js`: UPnP/SSDP M-SEARCH for LG webOS, Roku, Samsung, DLNA.
@@ -98,5 +98,5 @@ Below is the file-by-file audit of what is real, what is fake, and what must be 
    - Simple cron/timer schedules running locally on the hub.
 
 8. **Phase 8: Tests & Documentation**
-   - Unit and integration tests (WoL packet, webOS key mappings, discovery fingerprints, auth, mock driver contract).
+   - Unit and integration tests (WoL packet, webOS key mappings, discovery fingerprints, auth, hardware driver contract).
    - Local hub deployment guide (`README.md`), driver authoring guide (`ARCHITECTURE.md`), and final `TEST_REPORT.md`.

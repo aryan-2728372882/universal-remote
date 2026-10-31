@@ -172,11 +172,11 @@ Run the automated test suite:
 npm test
 ```
 
-To run offline mock simulation mode without hardware:
+To preview the remote web app in your browser:
 ```bash
-ENABLE_MOCK=1 npm start
+npm run dev
 ```
-This registers a mock multi-device driver clearly tagged `[MOCK TEST MODE]` in the UI to test all UI controls, sliders, D-pad, scenes, and schedules.
+Open `http://localhost:5173` to interact with real device profiles (LG webOS Smart TV, Nokia Smart TV, LG Dual Inverter AC, Samsung Smart TV, Roku Streaming TV), test the tactile D-pad, Elder Remote, and interactive Connection Doctor.
 
 ---
 

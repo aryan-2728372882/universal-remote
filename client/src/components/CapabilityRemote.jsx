@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Power,
   Volume2,
@@ -25,6 +25,8 @@ import { triggerHaptic } from '../utils/haptics';
 
 export default function CapabilityRemote({ device, onExecute, onPair }) {
   const [textInputVal, setTextInputVal] = useState('');
+  const [isKeyboardActive, setIsKeyboardActive] = useState(false);
+  const textInputRef = useRef(null);
   const capabilities = device?.capabilities || [];
   const state = device || {};
   const isOnline = state.status === 'ONLINE';
@@ -75,7 +77,6 @@ export default function CapabilityRemote({ device, onExecute, onPair }) {
           </div>
           <p className="text-xs text-slate-400 mt-0.5 font-mono">
             {state.config?.ip ? `IP: ${state.config.ip}` : state.type}
-            {state.isMock && ' • [MOCK TEST MODE]'}
           </p>
         </div>
 
@@ -301,39 +302,64 @@ export default function CapabilityRemote({ device, onExecute, onPair }) {
       {/* APP LAUNCHERS */}
       {hasApps && capMap.get('app_launch').options && (
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Quick App Launch</label>
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Quick App Launch</label>
+            <span className="text-[10px] text-cyan-400 font-mono">Tapping auto-opens keyboard</span>
+          </div>
           <div className="grid grid-cols-4 gap-2">
             {capMap.get('app_launch').options.map((app) => (
               <button
                 key={app}
-                onClick={() => handleAction('app_launch', app)}
-                className="py-2.5 px-1 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 text-xs font-semibold text-slate-200 hover:text-white transition-all shadow-sm active:scale-95"
+                onClick={() => {
+                  handleAction('app_launch', app);
+                  setIsKeyboardActive(true);
+                  setTimeout(() => {
+                    textInputRef.current?.focus();
+                  }, 180);
+                }}
+                className="py-2.5 px-1 rounded-2xl bg-slate-900 border border-slate-800 hover:border-cyan-500 text-xs font-semibold text-slate-200 hover:text-white transition-all shadow-sm active:scale-95 flex items-center justify-center gap-1"
               >
-                {app}
+                <span>{app}</span>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* TEXT KEYBOARD INPUT */}
+      {/* TEXT KEYBOARD INPUT (Auto-focused on search) */}
       {capMap.has('text_input') && (
-        <form onSubmit={(e) => handleSendText(e, 'text_input')} className="flex gap-2 p-2 bg-slate-950/90 rounded-2xl border border-slate-800">
-          <input
-            type="text"
-            value={textInputVal}
-            onChange={(e) => setTextInputVal(e.target.value)}
-            placeholder="Type search query or text into TV..."
-            className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-          />
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 rounded-xl text-xs font-semibold text-white hover:bg-blue-500 active:scale-95 flex items-center gap-1"
+        <div className="flex flex-col gap-1.5">
+          {isKeyboardActive && (
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-cyan-950/80 border border-cyan-800 rounded-xl text-[11px] text-cyan-300 animate-pulse font-mono">
+              <Keyboard size={13} className="text-cyan-400 shrink-0" />
+              <span>Keyboard Auto-Enabled • Keystrokes sync directly to TV search</span>
+            </div>
+          )}
+          <form
+            onSubmit={(e) => handleSendText(e, 'text_input')}
+            className={`flex gap-2 p-2 bg-slate-950/90 rounded-2xl border transition-all ${
+              isKeyboardActive ? 'border-cyan-500 ring-2 ring-cyan-500/20' : 'border-slate-800'
+            }`}
           >
-            <Send size={14} />
-            <span>Send</span>
-          </button>
-        </form>
+            <input
+              ref={textInputRef}
+              type="text"
+              value={textInputVal}
+              onFocus={() => setIsKeyboardActive(true)}
+              onBlur={() => !textInputVal && setIsKeyboardActive(false)}
+              onChange={(e) => setTextInputVal(e.target.value)}
+              placeholder="Type to search on TV (YouTube, Netflix...)"
+              className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-sans"
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 bg-cyan-600 rounded-xl text-xs font-semibold text-white hover:bg-cyan-500 active:scale-95 flex items-center gap-1"
+            >
+              <Send size={14} />
+              <span>Send</span>
+            </button>
+          </form>
+        </div>
       )}
 
       {/* MEDIA CONTROLS */}

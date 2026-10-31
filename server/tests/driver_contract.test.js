@@ -1,50 +1,54 @@
 const test = require('node:test');
 const assert = require('node:assert');
-const MockDriver = require('../drivers/mock');
+const LgWebosDriver = require('../drivers/lgWebos');
+const AndroidTvDriver = require('../drivers/androidTv');
+const RokuDriver = require('../drivers/roku');
+const SamsungTizenDriver = require('../drivers/samsungTizen');
+const TuyaDriver = require('../drivers/tuya');
+const BroadlinkIrDriver = require('../drivers/broadlinkIr');
 
-test('Driver Contract: MockDriver adheres to DeviceDriver specification', async () => {
-  const driver = new MockDriver({ id: 'test-mock', name: 'Mock Test Device' });
+const drivers = [
+  { name: 'LG webOS Driver', cls: LgWebosDriver, config: { id: 'test-lg-webos', ip: '192.168.1.50' } },
+  { name: 'Android TV Driver', cls: AndroidTvDriver, config: { id: 'test-android-tv', ip: '192.168.1.60' } },
+  { name: 'Roku Driver', cls: RokuDriver, config: { id: 'test-roku', ip: '192.168.1.70' } },
+  { name: 'Samsung Tizen Driver', cls: SamsungTizenDriver, config: { id: 'test-samsung', ip: '192.168.1.80' } },
+  { name: 'Tuya Driver', cls: TuyaDriver, config: { id: 'test-tuya', ip: '192.168.1.90', localKey: 'key', devId: 'dev' } },
+  { name: 'Broadlink IR Driver', cls: BroadlinkIrDriver, config: { id: 'test-broadlink', ip: '192.168.1.100', mac: 'AA:BB:CC:DD:EE:FF' } },
+];
 
-  // 1. Capabilities structure
-  const caps = driver.capabilities();
-  assert.ok(Array.isArray(caps), 'capabilities() must return array');
-  assert.ok(caps.length > 0, 'capabilities() should not be empty');
+for (const { name, cls, config } of drivers) {
+  test(`Driver Contract: ${name} adheres to DeviceDriver specification`, () => {
+    const driver = new cls(config);
 
-  for (const cap of caps) {
-    assert.ok(cap.id, 'Capability must have id');
-    assert.ok(cap.kind, 'Capability must have kind');
-    assert.ok(['button', 'toggle', 'slider', 'select', 'text', 'dpad'].includes(cap.kind), `Valid kind: ${cap.kind}`);
-    assert.ok(cap.label, 'Capability must have label');
-  }
+    // 1. Static type
+    assert.ok(typeof cls.type === 'string' && cls.type.length > 0, `${name} must declare a static type string`);
 
-  // 2. State & Subscription
-  let stateReceived = null;
-  const unsubscribe = driver.subscribe((st) => {
-    stateReceived = st;
+    // 2. Capabilities structure
+    const caps = driver.capabilities();
+    assert.ok(Array.isArray(caps), `${name} capabilities() must return array`);
+    assert.ok(caps.length > 0, `${name} capabilities() should not be empty`);
+
+    for (const cap of caps) {
+      assert.ok(cap.id, `${name}: Capability must have id`);
+      assert.ok(cap.kind, `${name}: Capability must have kind`);
+      assert.ok(
+        ['button', 'toggle', 'slider', 'select', 'text', 'dpad'].includes(cap.kind),
+        `${name}: Valid kind: ${cap.kind}`
+      );
+      assert.ok(cap.label, `${name}: Capability must have label`);
+    }
+
+    // 3. State & Subscription contract
+    const state = driver.getState();
+    assert.ok(state, `${name} getState() must return an object`);
+    assert.strictEqual(state.id, config.id, `${name} state.id must match config.id`);
+
+    let notified = false;
+    const unsub = driver.subscribe(() => {
+      notified = true;
+    });
+    driver.notifyStateChange();
+    assert.strictEqual(notified, true, `${name} subscriber must be notified on state update`);
+    unsub();
   });
-
-  // 3. Execution of volume_up
-  const initialVol = driver.getState().volume;
-  const res = await driver.execute('volume_up');
-  assert.strictEqual(res.ok, true, 'Execution should succeed');
-  assert.strictEqual(driver.getState().volume, initialVol + 1, 'Volume should have incremented');
-  assert.ok(stateReceived, 'State listener should have received notification');
-
-  // 4. Execution of climate temp_down
-  const initialTemp = driver.getState().targetTemp;
-  await driver.execute('temp_down');
-  assert.strictEqual(driver.getState().targetTemp, initialTemp - 1, 'Target temp should have decremented');
-
-  // 5. Execution of toggle mute
-  await driver.execute('mute', true);
-  assert.strictEqual(driver.getState().isMuted, true, 'isMuted should be true');
-
-  // 6. Execution of app launch
-  await driver.execute('app_launch', 'YouTube');
-  assert.strictEqual(driver.getState().currentApp, 'YouTube', 'currentApp should be YouTube');
-
-  // 7. Cleanup
-  unsubscribe();
-  await driver.disconnect();
-  assert.strictEqual(driver.getState().status, 'OFFLINE', 'Status after disconnect should be OFFLINE');
-});
+}

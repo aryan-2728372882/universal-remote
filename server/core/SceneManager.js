@@ -19,9 +19,7 @@ class SceneManager {
           actions: [
             { deviceType: 'lg_webos', capabilityId: 'power', value: true },
             { deviceType: 'lg_webos', capabilityId: 'app_launch', value: 'Netflix' },
-            { deviceType: 'lg_webos', capabilityId: 'volume', value: 18 },
-            { deviceType: 'lg_thinq', capabilityId: 'power', value: true },
-            { deviceType: 'lg_thinq', capabilityId: 'target_temp', value: 24 }
+            { deviceType: 'lg_webos', capabilityId: 'volume', value: 18 }
           ]
         },
         {
@@ -30,8 +28,7 @@ class SceneManager {
           icon: 'PowerOff',
           actions: [
             { deviceType: 'lg_webos', capabilityId: 'power', value: false },
-            { deviceType: 'android_tv', capabilityId: 'power', value: false },
-            { deviceType: 'lg_thinq', capabilityId: 'power', value: false }
+            { deviceType: 'android_tv', capabilityId: 'power', value: false }
           ]
         }
       ]);

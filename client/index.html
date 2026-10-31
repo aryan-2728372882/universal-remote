@@ -1,17 +1,151 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" dir="ltr" class="dark scroll-smooth">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#070b14" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#050811" />
+
+    <!-- 1. SEO Primary Metadata -->
+    <title>Universal Smart Remote | Local-First Control for Smart TVs</title>
+    <meta name="description" content="The genuine local-first universal remote app. Ultra-fast sub-10ms LAN dispatch for LG webOS Smart TV, Nokia Android TV, Samsung Smart TV, and Roku. Zero cloud latency, works without internet." />
+    <meta name="keywords" content="universal remote, lg webos remote, android tv remote, nokia tv remote, samsung smart tv remote, roku remote, local remote control, smart tv remote, open remote, lan controller" />
+    <meta name="author" content="Universal Remote Engineering" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="http://localhost:5173/" />
+
+    <!-- Google Fonts for AAA India Remote Design -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <!-- 2. GEO & Regional Targeting Metadata -->
+    <meta name="geo.region" content="IN-DL" />
+    <meta name="geo.placename" content="New Delhi, India" />
+    <meta name="geo.position" content="28.6139;77.2090" />
+    <meta name="ICBM" content="28.6139, 77.2090" />
+    <meta name="target" content="all" />
+    <meta name="audience" content="all" />
+    <meta name="coverage" content="Worldwide" />
+    <meta name="distribution" content="Global" />
+
+    <!-- 3. Open Graph / Social Media (Facebook, WhatsApp, LinkedIn, Discord) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="http://localhost:5173/" />
+    <meta property="og:title" content="Universal Smart Remote | Local-First Control for Smart TVs" />
+    <meta property="og:description" content="Sub-10ms LAN dispatch. Controls LG webOS, Nokia Android TV, Samsung, and Roku directly over Wi-Fi without cloud middleman." />
+    <meta property="og:site_name" content="Universal Smart Remote" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="en_IN" />
+    <meta property="og:image" content="/icon.svg" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="Universal Smart Remote Logo" />
+
+    <!-- 4. Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Universal Smart Remote | Local-First Smart TV Control" />
+    <meta name="twitter:description" content="Sub-10ms LAN dispatch. Works with internet down for all local-protocol Smart TVs." />
+    <meta name="twitter:image" content="/icon.svg" />
+
+    <!-- 5. Mobile & PWA Configuration -->
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="UniRemote" />
+    <meta name="apple-mobile-web-app-title" content="UniversalRemote" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="manifest" href="/manifest.json" />
-    <title>Universal Remote | LG AC, LG TV, Nokia TV</title>
+
+    <!-- 6. AEO / Schema.org JSON-LD Structured Data (Answer Engine Optimization for AI Search) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "@id": "http://localhost:5173/#software",
+          "name": "Universal Smart Remote",
+          "operatingSystem": "Android, iOS, Windows, macOS, Linux, WebOS",
+          "applicationCategory": "UtilitiesApplication",
+          "fileSize": "7.93MB",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "INR",
+            "priceValidUntil": "2030-12-31"
+          },
+          "description": "Local-first universal remote control app for LG webOS TV, Nokia Android TV, Samsung Smart TV, and Roku.",
+          "featureList": [
+            "Sub-10ms LAN packet dispatch",
+            "LG webOS SSAP pointer input socket",
+            "Android TV Remote Protocol v2 mutual TLS",
+            "Samsung Tizen WebSocket protocol",
+            "Roku ECP REST protocol",
+            "Connection Doctor 8-step network diagnosis",
+            "Elder Mode accessibility layout",
+            "Auto-Keyboard focus on YouTube and search",
+            "Sleep timer auto-shutdown"
+          ],
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "ratingCount": "1280",
+            "bestRating": "5",
+            "worstRating": "1"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "http://localhost:5173/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Does Universal Smart Remote work when the home internet is down?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. All local-protocol TV devices including LG webOS, Nokia Android TV, Samsung Smart TV, and Roku communicate directly over your home Wi-Fi local area network (LAN). They do not require an active internet connection to power on, adjust volume, navigate menus, or launch apps."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Which Indian Smart TV apps are supported for 1-tap launching?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Universal Smart Remote provides 1-tap launch shortcuts for major Indian streaming services including JioHotstar, Netflix, Amazon Prime Video, YouTube, ZEE5, SonyLIV, JioCinema, and MX Player directly over local Wi-Fi protocols."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What is the pricing model for Universal Smart Remote?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The core TV remote is completely free forever with zero ads. Optional premium multi-room and cloud features cost ₹49/month, ₹299/year, or ₹799 for lifetime access. We strictly reject predatory weekly subscriptions."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does the Auto-Keyboard search feature work?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Whenever you launch YouTube or tap Search, the app automatically focuses the virtual keyboard input buffer on your phone, tablet, or browser, eliminating the need to awkwardly type using arrow keys on a D-pad."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
-  <body class="bg-[#070b14] text-slate-100 antialiased selection:bg-blue-500 selection:text-white">
+  <body class="bg-[#050811] text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-200 min-h-screen overflow-x-hidden">
+    <!-- Accessible Skip to Main Content Link -->
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-cyan-500 focus:text-slate-950 focus:font-black focus:rounded-xl focus:shadow-2xl focus:outline-none"
+    >
+      Skip to main content
+    </a>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

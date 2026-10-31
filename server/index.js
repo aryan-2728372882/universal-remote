@@ -8,11 +8,9 @@ const auth = require('./core/Auth');
 const store = require('./core/Store');
 const deviceRegistry = require('./core/DeviceRegistry');
 
-// Drivers
+// Drivers (Smart TVs & IR Hubs)
 const LgWebosDriver = require('./drivers/lgWebos');
 const AndroidTvDriver = require('./drivers/androidTv');
-const LgThinqDriver = require('./drivers/lgThinq');
-const MockDriver = require('./drivers/mock');
 const SamsungTizenDriver = require('./drivers/samsungTizen');
 const RokuDriver = require('./drivers/roku');
 const BroadlinkIrDriver = require('./drivers/broadlinkIr');
@@ -31,17 +29,10 @@ const PORT = process.env.PORT || 3000;
 // Register Hardware & Protocol Drivers
 deviceRegistry.registerDriver(LgWebosDriver.type, LgWebosDriver);
 deviceRegistry.registerDriver(AndroidTvDriver.type, AndroidTvDriver);
-deviceRegistry.registerDriver(LgThinqDriver.type, LgThinqDriver);
 deviceRegistry.registerDriver(SamsungTizenDriver.type, SamsungTizenDriver);
 deviceRegistry.registerDriver(RokuDriver.type, RokuDriver);
 deviceRegistry.registerDriver(BroadlinkIrDriver.type, BroadlinkIrDriver);
 deviceRegistry.registerDriver(TuyaDriver.type, TuyaDriver);
-
-// Enable Mock Driver only when explicit flag is passed
-if (process.env.ENABLE_MOCK === '1') {
-  deviceRegistry.registerDriver(MockDriver.type, MockDriver);
-  console.log('[Universal Remote] ENABLE_MOCK=1: Mock driver registered for offline testing.');
-}
 
 // Security & Infrastructure Middlewares
 const { helmet, cookieParser, authLimiter, apiLimiter } = auth.securityMiddlewares();
